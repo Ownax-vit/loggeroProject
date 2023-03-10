@@ -1,17 +1,20 @@
 import os
 
 from starlette.datastructures import CommaSeparatedStrings, Secret
-from dotenv import loadenv
+from dotenv import load_dotenv
 from databases import DatabaseURL
 
-loadenv(".env")
+load_dotenv(".env")
+
+JWT_TOKEN_PREFIX = "Token"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # one week
 
 MAX_CONNECTIONS_COUNT = int(os.getenv("MAX_CONNECTIONS_COUNT", 10))
 MIN_CONNECTIONS_COUNT = int(os.getenv("MIN_CONNECTIONS_COUNT", 10))
 SECRET_KEY = Secret(os.getenv("SECRET_KEY", "Secretgd1hgas"))
 
 PROJECT_NAME = os.getenv("PROJECT_NAME", "Loggero")
-ALLOWED_HOST = CommaSeparatedStrings(os.getenv("ALLOWED_HOSTS"), "")
+ALLOWED_HOST = CommaSeparatedStrings(os.getenv("ALLOWED_HOSTS",  ""))
 
 MONGODB_URL = os.getenv("MONGO_URL", "")
 if not MONGODB_URL:
@@ -22,9 +25,10 @@ if not MONGODB_URL:
     MONGO_DB = os.getenv("MONGO_DB", "loggerodb")
 
     MONGODB_URL = DatabaseURL(
-        f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}"
+        f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}?authSource=admin"
     )
 else:
     MONGODB_URL = DatabaseURL(MONGODB_URL)
 
 database_name = MONGO_DB
+users_collection_name = "users"
