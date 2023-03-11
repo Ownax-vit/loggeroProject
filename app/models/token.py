@@ -1,5 +1,5 @@
-from .rwmodel import RWModel
+from .base import RWModel
 
 
 class TokenPayload(RWModel):
-    username: str = ""
+    login: str = ""

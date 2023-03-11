@@ -33,9 +33,11 @@ async def _get_current_user(
         token: str = Depends(_get_authorization_token)
 ) -> User:
     try:
-        payload = jwt.decode(token, str(SECRET_KEY), algoritms=[ALGORITHM])
+        payload = jwt.decode(token, str(SECRET_KEY), algorithms=[ALGORITHM])
+        print(payload)
         token_data = TokenPayload(**payload)
-    except PyJWTError:
+    except PyJWTError as exc:
+        print(exc)
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN, detail="Could not validate credentials"
         )

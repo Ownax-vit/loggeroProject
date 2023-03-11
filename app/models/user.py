@@ -1,13 +1,13 @@
 from typing import Optional
 
 
-from pydantic import EmailStr, BaseModel
+from pydantic import EmailStr, BaseModel, Field
 from ..core.security import generate_salt, get_password_hash, verify_password
-from .rwmodel import RWModel
+from .base import RWModel, PyObjectId
 
 
-class DBModelMixin(BaseModel):
-    id: Optional[int] = None
+# class DBModelMixin(BaseModel):
+#     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
 
 
 class UserBase(RWModel):
@@ -15,7 +15,7 @@ class UserBase(RWModel):
     email: EmailStr
 
 
-class UserInDB(DBModelMixin, UserBase):
+class UserInDB(UserBase):
     salt: str = ""
     hashed_password: str = ""
 
