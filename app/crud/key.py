@@ -10,6 +10,6 @@ async def add_key(conn: AsyncIOMotorClient, key: KeyApiCreate, login: str) -> Ke
     token = "asdhfgfdsa"
     dbkey = KeyApiInDB(**key.dict(), login=login, token=token)
 
-    row = await conn[database_name][key_collection_name].insert_one(dbkey.dict())
+    await conn[database_name][key_collection_name].insert_one(dbkey.dict())
 
     return dbkey

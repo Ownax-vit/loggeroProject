@@ -22,6 +22,6 @@ async def create_user(conn: AsyncIOMotorClient, user: UserInCreate) -> UserInDB:
     dbuser = UserInDB(**user.dict())
     dbuser.change_password(user.password)
 
-    row = await conn[database_name][users_collection_name].insert_one(dbuser.dict())
+    await conn[database_name][users_collection_name].insert_one(dbuser.dict())
 
     return dbuser

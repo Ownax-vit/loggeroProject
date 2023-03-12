@@ -43,6 +43,7 @@ class UserInLogin(RWModel):
 class UserInCreate(UserInLogin):
     login: str
 
+
 class UserInUpdate(RWModel):
     login: Optional[str] = None
     email: Optional[EmailStr] = None
