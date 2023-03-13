@@ -31,8 +31,8 @@ class User(UserBase):
     token: str
 
 
-class UserInResponse(RWModel):
-    user: User
+class UserInResponse(User):
+    pass
 
 
 class UserInLogin(RWModel):

@@ -14,7 +14,7 @@ from ....models.user import User, UserInCreate, UserInLogin, UserInResponse
 router = APIRouter(tags=["auth"])
 
 
-@router.post("/sign-in/", response_model=UserInResponse, tags=["auth"])
+@router.post("/sign-in/", response_model=UserInResponse, tags=["auth"], status_code=status.HTTP_201_CREATED)
 async def login(
         user: UserInLogin = Body(..., embed=True), db: AsyncIOMotorClient = Depends(get_database)
 ):
@@ -28,10 +28,10 @@ async def login(
         data={"login": dbuser.login}, expires_delta=access_token_expires
     )
 
-    return UserInResponse(user=User(**dbuser.dict(), token=token))
+    return UserInResponse(**dbuser.dict(), token=token)
 
 
-@router.post("/sign-up", response_model=UserInResponse, tags=["auth"], status_code=status.HTTP_201_CREATED)
+@router.post("/sign-up/", response_model=UserInResponse, tags=["auth"], status_code=status.HTTP_201_CREATED)
 async def register(user: UserInCreate = Body(..., embed=True), db: AsyncIOMotorClient = Depends(get_database)):
     await check_free_username_and_email(db, user.login, user.email)
 
@@ -40,6 +40,5 @@ async def register(user: UserInCreate = Body(..., embed=True), db: AsyncIOMotorC
     token = create_access_token(
             data={"username": dbuser.login}, expires_delta=access_token_expires
         )
-
-    return UserInResponse(user=User(**dbuser.dict(), token=token))
+    return UserInResponse(**dbuser.dict(), token=token)
 

@@ -8,13 +8,11 @@ from ..core.config import MONGODB_URL
 
 async def connect_to_mongo():
     logging.info("Connection to Mongodb...")
-    print("Connection...")
     db.client = AsyncIOMotorClient(str(MONGODB_URL))
     logging.info("Connected to Mongodb")
 
 
 async def close_connection_mongo():
     logging.info("Closing connection Mongodb...")
-    print("Close connection..")
     db.client.close()
     logging.info("Closed!")

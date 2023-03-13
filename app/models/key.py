@@ -1,13 +1,19 @@
-from pydantic import Field, BaseModel
+from typing import Optional, List
+from datetime import datetime
 
 from .base import RWModel
 
 
-class KeyApi(BaseModel):
+class KeyApi(RWModel):
+    token: str
+    expire: datetime
+
+
+class KeyApiDelete(RWModel):
     token: str
 
 
-class KeyApiCreate(BaseModel):
+class KeyApiCreate(RWModel):
     name: str
     description: str
 
@@ -16,8 +22,13 @@ class KeyApiInDB(KeyApi, KeyApiCreate):
     login: str
 
 
-class KeyApiInResponse(RWModel):
-    key: KeyApiInDB
+class KeyApiInResponse(KeyApi, KeyApiCreate):
+    pass
+
+
+class ListKeysInResponse(RWModel):
+    keys: List[KeyApiInResponse]
+
 
 
 
