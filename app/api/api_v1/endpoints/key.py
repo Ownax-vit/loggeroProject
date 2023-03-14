@@ -4,6 +4,7 @@ from fastapi import status
 from fastapi.exceptions import HTTPException
 from starlette.status import (
     HTTP_201_CREATED,
+    HTTP_200_OK,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
@@ -11,9 +12,9 @@ from starlette.status import (
 )
 from ....core.jwt import get_current_user_authorizer
 
-from ....crud.key import add_api_key, get_api_keys, delete_api_key
+from ....crud.key import add_api_key, get_api_keys, delete_api_key, update_api_key
 from ....db.mongodb import AsyncIOMotorClient, get_database
-from ....models.key import KeyApiDelete, KeyApiCreate, KeyApiInResponse, ListKeysInResponse
+from ....models.key import KeyApiDelete, KeyApiUpdate, KeyApiCreate, KeyApiInResponse, ListKeysInResponse
 from ....models.user import User
 
 router = APIRouter(tags=["key"])
@@ -50,6 +51,18 @@ async def delete_key(
         db: AsyncIOMotorClient = Depends(get_database),
 ):
     await delete_api_key(db, key_api.token)
+
+
+@router.put("/api-keys", status_code=HTTP_200_OK, response_model=KeyApiInResponse)
+async def update_key(
+        key_api: KeyApiUpdate = Body(..., embed=True),
+        # user: User = Depends(get_current_user_authorizer()),
+        db: AsyncIOMotorClient = Depends(get_database),
+):
+    dbkey = await update_api_key(db, "ownax", key_api)
+
+    return KeyApiInResponse(**dbkey.dict())
+
 
 
 

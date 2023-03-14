@@ -1,5 +1,7 @@
-from typing import Optional, List
+from typing import List
 from datetime import datetime
+
+from pydantic import Field
 
 from .base import RWModel
 
@@ -22,7 +24,13 @@ class KeyApiInDB(KeyApi, KeyApiCreate):
     login: str
 
 
-class KeyApiInResponse(KeyApi, KeyApiCreate):
+class KeyApiUpdate(RWModel):
+    token: str | None
+    name: str | None
+    description: str | None
+
+
+class KeyApiInResponse(KeyApiInDB):
     pass
 
 
