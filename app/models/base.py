@@ -1,13 +1,12 @@
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import datetime
+from datetime import timezone
 
 from bson import ObjectId
-from fastapi.openapi.models import Schema
-from pydantic import BaseConfig, BaseModel
+from pydantic import BaseConfig
+from pydantic import BaseModel
 
 
 class RWModel(BaseModel):
-
     class Config(BaseConfig):
         allow_population_by_alias = True
         json_encoders = {
@@ -31,4 +30,3 @@ class PyObjectId(ObjectId):
     @classmethod
     def __modify_schema__(cls, field_schema):
         field_schema.update(type="string")
-

@@ -1,9 +1,11 @@
 from typing import Optional
 
+from pydantic import EmailStr
 
-from pydantic import EmailStr, BaseModel, Field
-from ..core.security import generate_salt, get_password_hash, verify_password
-from .base import RWModel, PyObjectId
+from ..core.security import generate_salt
+from ..core.security import get_password_hash
+from ..core.security import verify_password
+from .base import RWModel
 
 
 # class DBModelMixin(BaseModel):

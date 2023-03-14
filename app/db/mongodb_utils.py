@@ -1,11 +1,9 @@
-import sys
 import logging
 
-from starlette.exceptions import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from .mongodb import db
 from ..core.config import MONGODB_URL
+from .mongodb import db
 
 
 async def connect_to_mongo():

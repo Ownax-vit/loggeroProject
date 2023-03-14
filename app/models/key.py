@@ -1,7 +1,5 @@
-from typing import List
 from datetime import datetime
-
-from pydantic import Field
+from typing import List
 
 from .base import RWModel
 
@@ -36,11 +34,3 @@ class KeyApiInResponse(KeyApiInDB):
 
 class ListKeysInResponse(RWModel):
     keys: List[KeyApiInResponse]
-
-
-
-
-
-
-
-

@@ -1,12 +1,8 @@
-import asyncio
-from typing import Any, Generator
+from typing import Any
+from typing import Generator
 
 import pytest_asyncio
 from starlette.testclient import TestClient
-from pymongo import MongoClient
-
-from app.db.mongodb import get_database
-from app.core.config import database_name, users_collection_name, key_collection_name, MONGODB_URL
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -15,7 +11,7 @@ def test_user():
         "user": {
             "email": "test_user@test.com",
             "password": "qwerty1234",
-            "login": "tester"
+            "login": "tester",
         }
     }
 

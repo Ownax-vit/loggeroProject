@@ -1,6 +1,5 @@
-
 from motor.motor_asyncio import AsyncIOMotorClient
-from ..core.config import MONGODB_URL
+
 
 class Database:
     client: AsyncIOMotorClient = None

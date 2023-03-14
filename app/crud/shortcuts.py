@@ -6,12 +6,15 @@ from starlette.status import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 
-from .user import get_user, get_user_by_email
 from ..db.mongodb import AsyncIOMotorClient
+from .user import get_user
+from .user import get_user_by_email
 
 
 async def check_free_username_and_email(
-        conn: AsyncIOMotorClient, login: Optional[str] = None, email: Optional[EmailStr] = None
+    conn: AsyncIOMotorClient,
+    login: Optional[str] = None,
+    email: Optional[EmailStr] = None,
 ):
     if login:
         user_by_username = await get_user(conn, login)

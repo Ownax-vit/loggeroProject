@@ -1,9 +1,10 @@
 from pydantic import EmailStr
-from bson.objectid import ObjectId
 
+from ..core.config import database_name
+from ..core.config import users_collection_name
 from ..db.mongodb import AsyncIOMotorClient
-from ..core.config import database_name, users_collection_name
-from ..models.user import UserInCreate, UserInDB
+from ..models.user import UserInCreate
+from ..models.user import UserInDB
 
 
 async def get_user(conn: AsyncIOMotorClient, login: str) -> UserInDB:
