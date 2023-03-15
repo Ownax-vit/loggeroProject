@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import List
 
+from pydantic import Field
+
 from .base import RWModel
 
 
