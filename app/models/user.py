@@ -1,25 +1,20 @@
-from typing import Optional
-
-from pydantic import EmailStr
+from pydantic import EmailStr, Field
 
 from ..core.security import generate_salt
 from ..core.security import get_password_hash
 from ..core.security import verify_password
 from .base import RWModel
+from .base import DBModelMixin
 
 
-# class DBModelMixin(BaseModel):
-#     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
-
-
-class UserBase(RWModel):
-    login: str
-    email: EmailStr
+class UserBase(RWModel, DBModelMixin):
+    login: str = Field(...)
+    email: EmailStr = Field(...)
 
 
 class UserInDB(UserBase):
-    salt: str = ""
-    hashed_password: str = ""
+    salt: str = Field(default="")
+    hashed_password: str = Field(default="")
 
     def check_password(self, password: str):
         return verify_password(self.salt + password, self.hashed_password)
@@ -30,7 +25,7 @@ class UserInDB(UserBase):
 
 
 class User(UserBase):
-    token: str
+    token: str = Field(...)
 
 
 class UserInResponse(User):
@@ -38,15 +33,15 @@ class UserInResponse(User):
 
 
 class UserInLogin(RWModel):
-    email: EmailStr
-    password: str
+    email: EmailStr = Field(...)
+    password: str = Field(...)
 
 
 class UserInCreate(UserInLogin):
-    login: str
+    login: str = Field(...)
 
 
 class UserInUpdate(RWModel):
-    login: Optional[str] = None
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
+    login: str = Field(default=None)
+    email: EmailStr = Field(default=None)
+    password: str = Field(default=None)

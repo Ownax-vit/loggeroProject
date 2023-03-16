@@ -3,7 +3,7 @@ from datetime import timezone
 
 from bson import ObjectId
 from pydantic import BaseConfig
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class RWModel(BaseModel):
@@ -30,3 +30,12 @@ class PyObjectId(ObjectId):
     @classmethod
     def __modify_schema__(cls, field_schema):
         field_schema.update(type="string")
+
+
+class DBModelMixin(BaseModel):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+
+    class Config:
+        allow_population_by_field_name = True
+        arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}

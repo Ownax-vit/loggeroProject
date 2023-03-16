@@ -1,12 +1,11 @@
 from datetime import datetime
 from typing import List
 
-from pydantic import Field
-
 from .base import RWModel
+from .base import DBModelMixin
 
 
-class KeyApi(RWModel):
+class KeyApi(RWModel, DBModelMixin):
     token: str
     expire: datetime
 
