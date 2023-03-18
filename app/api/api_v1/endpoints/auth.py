@@ -59,6 +59,6 @@ async def register(
     dbuser = await create_user(db, user)
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     token = create_access_token(
-        data={"username": dbuser.login}, expires_delta=access_token_expires
+        data={"login": dbuser.login}, expires_delta=access_token_expires
     )
     return UserInResponse(**dbuser.dict(), token=token)

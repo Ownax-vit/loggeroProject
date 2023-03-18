@@ -1,5 +1,8 @@
-from .base import RWModel
+from .base import DBModelBase
 
 
-class TokenPayload(RWModel):
+class TokenPayload(DBModelBase):
     login: str = ""
+
+    class Config:
+        arbitrary_types_allowed = True

@@ -25,7 +25,7 @@ async def add_api_key(
     expire = datetime.utcnow() + timedelta(API_KEY_EXPIRE_DAYS)
     dbkey = KeyApiInDB(**key.dict(), login=login, token=token, expire=expire)
 
-    await conn[database_name][key_collection_name].insert_one(dbkey.dict())
+    await conn[database_name][key_collection_name].insert_one(dbkey.dict(by_alias=True))
 
     return dbkey
 
@@ -41,20 +41,20 @@ async def get_api_keys(
         return keys
 
 
-async def get_api_key(conn: AsyncIOMotorClient, key: str) -> KeyApiInDB:
-    dbkey = await conn[database_name][key_collection_name].find_one({"token": key})
+async def get_api_key(conn: AsyncIOMotorClient, key_id: str) -> KeyApiInDB:
+    dbkey = await conn[database_name][key_collection_name].find_one({"_id": key_id})
     if dbkey:
         return KeyApiInDB(**dbkey)
 
 
-async def delete_api_key(conn: AsyncIOMotorClient, key: str):
-    await conn[database_name][key_collection_name].delete_one({"token": key})
+async def delete_api_key(conn: AsyncIOMotorClient, key_id: str):
+    await conn[database_name][key_collection_name].delete_one({"_id": key_id})
 
 
 async def update_api_key(
     conn: AsyncIOMotorClient, login: str, key: KeyApiUpdate
 ) -> KeyApiInDB | None:
-    dbkey = await get_api_key(conn, key.token)
+    dbkey = await get_api_key(conn, key.id)
     if not dbkey:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Api key not found!")
 
@@ -63,7 +63,7 @@ async def update_api_key(
 
     dbkey.token = new_token
     dbkey.expire = expire
-    dbkey.login = login
+    dbkey.user_id = login
     dbkey.name = key.name or dbkey.name
     dbkey.description = key.description or dbkey.description
 
@@ -76,5 +76,3 @@ async def update_api_key(
         )
 
     return dbkey
-
-

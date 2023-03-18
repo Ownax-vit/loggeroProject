@@ -1,13 +1,14 @@
-from pydantic import EmailStr, Field
+from pydantic import BaseModel
+from pydantic import EmailStr
+from pydantic import Field
 
 from ..core.security import generate_salt
 from ..core.security import get_password_hash
 from ..core.security import verify_password
-from .base import RWModel
 from .base import DBModelMixin
 
 
-class UserBase(RWModel, DBModelMixin):
+class UserBase(DBModelMixin):
     login: str = Field(...)
     email: EmailStr = Field(...)
 
@@ -32,7 +33,7 @@ class UserInResponse(User):
     pass
 
 
-class UserInLogin(RWModel):
+class UserInLogin(BaseModel):
     email: EmailStr = Field(...)
     password: str = Field(...)
 
@@ -41,7 +42,6 @@ class UserInCreate(UserInLogin):
     login: str = Field(...)
 
 
-class UserInUpdate(RWModel):
-    login: str = Field(default=None)
+class UserInUpdate(BaseModel):
     email: EmailStr = Field(default=None)
     password: str = Field(default=None)

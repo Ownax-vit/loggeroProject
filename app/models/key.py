@@ -1,20 +1,20 @@
 from datetime import datetime
 from typing import List
 
-from .base import RWModel
+from .base import DBModelBase
 from .base import DBModelMixin
 
 
-class KeyApi(RWModel, DBModelMixin):
+class KeyApi(DBModelBase, DBModelMixin):
     token: str
     expire: datetime
 
 
-class KeyApiDelete(RWModel):
-    token: str
+class KeyApiDelete(DBModelMixin):
+    pass
 
 
-class KeyApiCreate(RWModel):
+class KeyApiCreate(DBModelBase):
     name: str
     description: str
 
@@ -23,7 +23,7 @@ class KeyApiInDB(KeyApi, KeyApiCreate):
     login: str
 
 
-class KeyApiUpdate(RWModel):
+class KeyApiUpdate(DBModelBase):
     token: str | None
     name: str | None
     description: str | None
@@ -33,5 +33,5 @@ class KeyApiInResponse(KeyApiInDB):
     pass
 
 
-class ListKeysInResponse(RWModel):
+class ListKeysInResponse(DBModelBase):
     keys: List[KeyApiInResponse]

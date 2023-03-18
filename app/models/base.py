@@ -2,17 +2,19 @@ from datetime import datetime
 from datetime import timezone
 
 from bson import ObjectId
-from pydantic import BaseConfig
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic import Field
 
 
-class RWModel(BaseModel):
-    class Config(BaseConfig):
-        allow_population_by_alias = True
+class DBModelBase(BaseModel):
+    class Config:
+        allow_population_by_field_name = True
+        arbitrary_types_allowed = True
         json_encoders = {
+            ObjectId: str,
             datetime: lambda dt: dt.replace(tzinfo=timezone.utc)
             .isoformat()
-            .replace("+00:00", "Z")
+            .replace("+00:00", "Z"),
         }
 
 
@@ -38,4 +40,9 @@ class DBModelMixin(BaseModel):
     class Config:
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+        json_encoders = {
+            ObjectId: str,
+            datetime: lambda dt: dt.replace(tzinfo=timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z"),
+        }
