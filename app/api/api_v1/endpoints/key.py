@@ -1,16 +1,17 @@
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
+from fastapi import Path
 from fastapi.exceptions import HTTPException
 from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_201_CREATED
 from starlette.status import HTTP_204_NO_CONTENT
-from starlette.status import HTTP_403_FORBIDDEN
 from starlette.status import HTTP_404_NOT_FOUND
 
 from ....core.jwt import get_current_user_authorizer
 from ....crud.key import add_api_key
 from ....crud.key import delete_api_key
+from ....crud.key import get_api_key
 from ....crud.key import get_api_keys
 from ....crud.key import update_api_key
 from ....db.mongodb import AsyncIOMotorClient
@@ -47,25 +48,36 @@ async def create_key(
     return KeyApiInResponse(**dbkey.dict())
 
 
+@router.get("/key/{key_id}", response_model=KeyApiInResponse, status_code=HTTP_200_OK)
+async def get_key(
+    key_id: str = Path(...),
+    user: User = Depends(get_current_user_authorizer()),
+    db: AsyncIOMotorClient = Depends(get_database),
+) -> KeyApiInResponse:
+    dbkey = await get_api_key(db, key_id, user.login)
+    if not dbkey:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail="Api key with current user not found!",
+        )
+    return KeyApiInResponse(**dbkey.dict())
+
+
 @router.delete("/key/{key_id}", status_code=HTTP_204_NO_CONTENT)
 async def delete_key(
-    key_id: str,
+    key_id: str = Path(...),
     user: User = Depends(get_current_user_authorizer()),
     db: AsyncIOMotorClient = Depends(get_database),
 ):
-    if not user:
-        raise HTTPException(
-            status_code=HTTP_403_FORBIDDEN, detail="Not allowed for user!"
-        )
-    await delete_api_key(db, key_id)
+    await delete_api_key(db, key_id, user.login)
 
 
 @router.put("/key/{key_id}", status_code=HTTP_200_OK, response_model=KeyApiInResponse)
 async def update_key(
-    key: KeyApiUpdate(...),
+    key: KeyApiUpdate = Body(..., embed=True),
     user: User = Depends(get_current_user_authorizer()),
     db: AsyncIOMotorClient = Depends(get_database),
 ):
-    dbkey = await update_api_key(db, user.login, key)
+    dbkey = await update_api_key(db, key, user.login)
 
     return KeyApiInResponse(**dbkey.dict())

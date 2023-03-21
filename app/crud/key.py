@@ -4,6 +4,7 @@ from datetime import timedelta
 from typing import List
 from typing import Optional
 
+from bson.objectid import ObjectId
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_404_NOT_FOUND
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
@@ -34,25 +35,34 @@ async def get_api_keys(
     conn: AsyncIOMotorClient, login: str
 ) -> Optional[List[KeyApiInResponse]]:
     keys = [
-        KeyApiInResponse(**key)
+        KeyApiInDB(**key)
         async for key in conn[database_name][key_collection_name].find({"login": login})
     ]
     if keys:
         return keys
 
 
-async def get_api_key(conn: AsyncIOMotorClient, key_id: str) -> KeyApiInDB:
-    dbkey = await conn[database_name][key_collection_name].find_one({"_id": key_id})
+async def get_api_key(conn: AsyncIOMotorClient, key_id: str, login: str) -> KeyApiInDB:
+    dbkey = await conn[database_name][key_collection_name].find_one(
+        {"_id": ObjectId(key_id), "login": login}
+    )
     if dbkey:
         return KeyApiInDB(**dbkey)
 
 
-async def delete_api_key(conn: AsyncIOMotorClient, key_id: str):
-    await conn[database_name][key_collection_name].delete_one({"_id": key_id})
+async def delete_api_key(conn: AsyncIOMotorClient, key_id: str, login: str):
+    # исправить
+    del_res = await conn[database_name][key_collection_name].delete_one(
+        {"_id": ObjectId(key_id), "login": login}
+    )
+    if del_res.deleted_count != 1:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND, detail=f"Api Key with ID {key_id} not found"
+        )
 
 
 async def update_api_key(
-    conn: AsyncIOMotorClient, login: str, key: KeyApiUpdate
+    conn: AsyncIOMotorClient, key: KeyApiUpdate, login: str
 ) -> KeyApiInDB | None:
     dbkey = await get_api_key(conn, key.id)
     if not dbkey:

@@ -3,19 +3,23 @@ from typing import List
 from pydantic import BaseModel
 from pydantic import Field
 
+from .base import DBModelBase
 from .base import DBModelMixin
-from .base import PyObjectId
 from .key import KeyApi
 
 
 class Journal(DBModelMixin):
+    pass
+
+
+class JournalCreate(BaseModel):
     name: str = Field(...)
     description: str = Field(...)
     api_keys: List[KeyApi] | None
 
 
-class JournalInDB(Journal):
-    user: PyObjectId = Field(alias="user_id")
+class JournalInDB(JournalCreate, Journal):
+    user_login: str = Field(...)
 
 
 class JournalInResponse(JournalInDB):
@@ -32,5 +36,5 @@ class JournalDelete(DBModelMixin):
     pass
 
 
-class ListJournalInResponse(BaseModel):
+class ListJournalInResponse(DBModelBase):
     journals: List[JournalInResponse]
