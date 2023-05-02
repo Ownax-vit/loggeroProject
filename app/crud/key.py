@@ -50,6 +50,14 @@ async def get_api_key(conn: AsyncIOMotorClient, key_id: str, login: str) -> KeyA
         return KeyApiInDB(**dbkey)
 
 
+async def get_api_key_by_token(conn: AsyncIOMotorClient, key_id: str) -> KeyApiInDB:
+    dbkey = await conn[database_name][key_collection_name].find_one(
+        {"token": key_id}
+    )
+    if dbkey:
+        return KeyApiInDB(**dbkey)
+
+
 async def delete_api_key(conn: AsyncIOMotorClient, key_id: str, login: str):
     # исправить
     del_res = await conn[database_name][key_collection_name].delete_one(
@@ -64,7 +72,7 @@ async def delete_api_key(conn: AsyncIOMotorClient, key_id: str, login: str):
 async def update_api_key(
     conn: AsyncIOMotorClient, key: KeyApiUpdate, login: str
 ) -> KeyApiInDB | None:
-    dbkey = await get_api_key(conn, key.id)
+    dbkey = await get_api_key(conn, key.id, login)
     if not dbkey:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Api key not found!")
 
@@ -73,13 +81,14 @@ async def update_api_key(
 
     dbkey.token = new_token
     dbkey.expire = expire
-    dbkey.user_id = login
+    dbkey.login = login
     dbkey.name = key.name or dbkey.name
     dbkey.description = key.description or dbkey.description
 
     res = await conn[database_name][key_collection_name].update_one(
-        {"token": key.token}, {"$set": dbkey.dict()}
+        {"_id": key.id}, {"$set": dbkey.dict()}
     )
+
     if res.modified_count != 1:
         raise HTTPException(
             HTTP_422_UNPROCESSABLE_ENTITY, detail="Error while update api key"

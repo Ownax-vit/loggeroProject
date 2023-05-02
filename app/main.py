@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .api.api_v1.api import router as api_router
+from .api.service.api import router as api_router_service
 from .db.mongodb_utils import close_connection_mongo
 from .db.mongodb_utils import connect_to_mongo
 
@@ -18,3 +19,4 @@ app = FastAPI(title="Loggero", lifespan=lifespan)
 
 
 app.include_router(api_router)
+app.include_router(api_router_service)

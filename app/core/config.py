@@ -37,3 +37,4 @@ database_name = MONGO_DB
 users_collection_name = "users"
 key_collection_name = "keys"
 journal_collection_name = "journals"
+log_collection_name = "logs"

@@ -23,8 +23,7 @@ class KeyApiInDB(KeyApi, KeyApiCreate):
     login: str
 
 
-class KeyApiUpdate(DBModelBase):
-    token: str | None
+class KeyApiUpdate(DBModelBase, DBModelMixin):
     name: str | None
     description: str | None
 

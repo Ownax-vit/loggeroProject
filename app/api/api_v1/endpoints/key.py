@@ -72,7 +72,7 @@ async def delete_key(
     await delete_api_key(db, key_id, user.login)
 
 
-@router.put("/key/{key_id}", status_code=HTTP_200_OK, response_model=KeyApiInResponse)
+@router.put("/key", status_code=HTTP_200_OK, response_model=KeyApiInResponse)
 async def update_key(
     key: KeyApiUpdate = Body(..., embed=True),
     user: User = Depends(get_current_user_authorizer()),
