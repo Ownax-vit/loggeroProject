@@ -3,16 +3,15 @@ from typing import Optional
 
 from pydantic import EmailStr
 from starlette.exceptions import HTTPException
-from starlette.status import (
-    HTTP_422_UNPROCESSABLE_ENTITY,
-    HTTP_404_NOT_FOUND,
-    HTTP_410_GONE
-)
+from starlette.status import HTTP_404_NOT_FOUND
+from starlette.status import HTTP_410_GONE
+from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 
 from ..db.mongodb import AsyncIOMotorClient
+from .key import get_api_key_by_token
 from .user import get_user
 from .user import get_user_by_email
-from .key import get_api_key_by_token
+
 
 async def check_free_username_and_email(
     conn: AsyncIOMotorClient,
@@ -35,19 +34,13 @@ async def check_free_username_and_email(
             )
 
 
-async def check_token(conn: AsyncIOMotorClient,
-                      token: str) -> Optional[str]:
-    """ Check token api-key by date """
+async def check_token(conn: AsyncIOMotorClient, token: str) -> Optional[str]:
+    """Check token api-key by date and return pyobject id"""
     token = await get_api_key_by_token(conn, token)
     if token is None:
         raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND,
-            detail="Current api-key not found!"
+            status_code=HTTP_404_NOT_FOUND, detail="Current api-key not found!"
         )
     if token.expire < datetime.now():
-        raise HTTPException(
-            status_code=HTTP_410_GONE,
-            detail="Current token expired!"
-        )
+        raise HTTPException(status_code=HTTP_410_GONE, detail="Current token expired!")
     return token.id
-

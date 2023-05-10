@@ -51,9 +51,7 @@ async def get_api_key(conn: AsyncIOMotorClient, key_id: str, login: str) -> KeyA
 
 
 async def get_api_key_by_token(conn: AsyncIOMotorClient, key_id: str) -> KeyApiInDB:
-    dbkey = await conn[database_name][key_collection_name].find_one(
-        {"token": key_id}
-    )
+    dbkey = await conn[database_name][key_collection_name].find_one({"token": key_id})
     if dbkey:
         return KeyApiInDB(**dbkey)
 
