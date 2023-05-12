@@ -15,18 +15,16 @@ class LogBase(DBModelBase):
 
 
 class LogRequest(LogBase):
-    api_key_public: str = Field(...) # token == key-api публичный ид токена uuid строка
+    api_key_public: str = Field(...)  # token == key-api публичный ид токена uuid строка
 
 
 class LogInDb(LogBase, DBModelMixin):
-    api_key_id: PyObjectId = Field(...) #  PyObject - уникальный ид токена хэш в монго
+    api_key_id: PyObjectId = Field(...)  # PyObject - уникальный ид токена хэш в монго
 
 
 class ListLogRequest(DBModelBase):
-    api_key_id: PyObjectId = Field(...) # PyObject - уникальный ид токена
+    logs: List[LogRequest]
 
 
-class ListLogsShow(DBModelBase):
+class ListLogsInDb(DBModelBase):
     logs: List[LogInDb]
-
-

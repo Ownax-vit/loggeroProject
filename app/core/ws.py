@@ -7,21 +7,24 @@ from json.decoder import JSONDecodeError
 from fastapi import WebSocket
 from fastapi import WebSocketException
 from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic.error_wrappers import ValidationError
 
 from ..crud.log import add_log
 from ..models.log import LogRequest
 
 
 class ClientLogEventKind:
+    PUSH_LOG = "push_log"
+    PUSH_LOGS = "push_logs"
     CONNECT = "connect"
     DISCONNECT = "disconnect"
-    PING = "ping"
-    ERROR = "error"
+    PONG = "pong"
 
 
 class ServiceLogEvent:
-    PUSH_LOG = "push_log"
-    PUSH_LOGS = "push_logs"
+    ERROR = "error"
+    ERROR_FORMAT = "error_format"
+    PING = "ping"
 
 
 @dataclass
@@ -34,24 +37,24 @@ class Msg:
 
 
 class WSAccessor:
-    """Сокет адаптер"""
+    """Class accessor to websocket"""
 
     async def connect(self, ws: WebSocket) -> WebSocket:
-        """Установка коннекта"""
+        """Connection to socket"""
         await ws.accept()
         print("New connect:")
         return ws
-        # self._push(token, ws)
 
     async def push(self, ws: WebSocket, data: str):
-        """Отправка данных в json"""
+        """Send json data"""
         await ws.send_json(data)
 
     async def close(self, connection_id: int):
-        """закрытие соединения"""
+        """disconnect socket"""
         await connection_id.close()
 
     async def monitor(self, connection_object: WebSocket) -> typing.AsyncIterable:
+        "check stream msgs socket"
         try:
             async for message in connection_object.iter_json():
                 print(message)
@@ -59,13 +62,30 @@ class WSAccessor:
         except JSONDecodeError as exc:
             print("EXC", exc)
             error_data = json.dumps({"error": "support json only"})
-            yield Msg(kind=ClientLogEventKind.ERROR, payload=error_data)
+            yield Msg(kind=ServiceLogEvent.ERROR, payload=error_data)
+
+
+class WSLogger:
+    """Class of data proccesing logs"""
+
+    async def add_log(self, msg: Msg, token: str, db: AsyncIOMotorClient) -> Msg | None:
+        """Добавить лог в БД"""
+        try:
+            log_request = LogRequest(**msg.payload, api_key_public=token)
+            await add_log(db, log_request)
+        except ValidationError as exc:
+            return Msg(kind=ServiceLogEvent.ERROR_FORMAT, payload=exc)
+        except WebSocketException as exc:
+            return Msg(kind=ServiceLogEvent.ERROR, payload=exc.reason)
 
 
 class WSManager:
-    def __init__(self, ws_accessor: WSAccessor):
+    "Management events msgs socket"
+
+    def __init__(self, ws_accessor: WSAccessor, ws_logger: WSLogger):
         self.dict_connections: dict[str, WebSocket] = {}
         self.ws_accessor = ws_accessor
+        self.ws_logger = ws_logger
 
     async def handle(
         self, connection_object: WebSocket, token: str, db: AsyncIOMotorClient
@@ -73,36 +93,30 @@ class WSManager:
         print("new handle connection with token:", token)
         self.dict_connections[token] = connection_object
         async for msg in self.ws_accessor.monitor(connection_object):
-            try:
-                should_continue = await self._handle_event(
-                    connection_object, msg, token, db
-                )
-                if not should_continue:
-                    del self.dict_connections[token]
-                    break
-            except WebSocketException as exc:
-                print("EXCEPTION_____", exc.reason, exc.code)
+            should_continue = await self._handle_event(
+                connection_object, msg, token, db
+            )
+            if not should_continue:
+                del self.dict_connections[token]
+                break
 
     async def _handle_event(
         self, connection_object: WebSocket, msg: Msg, token: str, db: AsyncIOMotorClient
     ) -> bool:
-        if msg.kind == ServiceLogEvent.PUSH_LOG:
-            print("data process msg", msg)
-            log_request = LogRequest(**msg.payload, api_key_public=token)
-            print(log_request)
-            log = await add_log(db, log_request)
-            print("Log added: ", log)
+        if msg.kind == ClientLogEventKind.PUSH_LOG:
+            msg = await self.ws_logger.add_log(msg, token, db)
+            if msg is not None:
+                self._send_response(connection_object, msg)
             return True
-        elif msg.kind == ClientLogEventKind.ERROR:
-            print("Error JSON format")
-            await self._send_error(connection_object, msg)
+        elif msg.kind == ServiceLogEvent.ERROR:
+            await self._send_response(connection_object, msg)
             return True
         else:
             raise NotImplementedError
 
-    async def _send_error(self, connection_object: WebSocket, msg_error: str):
-        error = json.dumps(asdict(msg_error))
-        await self.ws_accessor.push(connection_object, error)
+    async def _send_response(self, connection_object: WebSocket, msg: str):
+        msg_json = json.dumps(asdict(msg))
+        await self.ws_accessor.push(connection_object, msg_json)
 
 
 class WSContext:
@@ -115,4 +129,7 @@ class WSContext:
         return self.connection_object
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.manager.ws_accessor.close(self.ws)
+        try:
+            await self.manager.ws_accessor.close(self.ws)
+        except RuntimeError as exc:
+            print("Runtime error", exc)

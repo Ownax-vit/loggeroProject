@@ -7,7 +7,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 from ..core.config import database_name
 from ..core.config import log_collection_name
 from ..db.mongodb import AsyncIOMotorClient
-from ..models.log import ListLogsShow
+from ..models.log import ListLogsInDb
 from ..models.log import LogInDb
 from ..models.log import LogRequest
 from .key import get_api_key
@@ -30,7 +30,7 @@ async def add_log(conn: AsyncIOMotorClient, log: LogRequest) -> LogInDb:
 
 async def get_list_logs(
     conn: AsyncIOMotorClient, api_key_id, login
-) -> Optional[ListLogsShow]:
+) -> Optional[ListLogsInDb]:
     dbkey = await get_api_key(conn, api_key_id, login)
     if not dbkey:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Api key not found!")

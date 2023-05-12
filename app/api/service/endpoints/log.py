@@ -6,6 +6,7 @@ from starlette.status import HTTP_201_CREATED
 
 from ....core.ws import WSAccessor
 from ....core.ws import WSContext
+from ....core.ws import WSLogger
 from ....core.ws import WSManager
 from ....crud.log import add_log
 from ....db.mongodb import AsyncIOMotorClient
@@ -17,7 +18,8 @@ from ....models.log import LogRequest
 router = APIRouter(tags=["log"])
 
 ws_accessor = WSAccessor()
-ws_manager = WSManager(ws_accessor)
+ws_logger = WSLogger()
+ws_manager = WSManager(ws_accessor, ws_logger)
 
 
 @router.post("/log", response_model=LogInDb, status_code=HTTP_201_CREATED)
@@ -33,6 +35,6 @@ async def push_log(
 async def websocket_connect(
     websocket: WebSocket, token: str, db: AsyncIOMotorClient = Depends(get_database)
 ):
-    """принимает соединение по сокету, использует токен клиента"""
+    """connection on socket by api-key of machine"""
     async with WSContext(ws_manager, websocket) as connection_object:
         await ws_manager.handle(connection_object, token, db)
