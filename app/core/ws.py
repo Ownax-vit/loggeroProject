@@ -36,6 +36,10 @@ class Msg:
         return f"Msg<{self.kind}>"
 
 
+class BadRequestLogs(Exception):
+    pass
+
+
 class WSAccessor:
     """Class accessor to websocket"""
 
@@ -49,9 +53,9 @@ class WSAccessor:
         """Send json data"""
         await ws.send_json(data)
 
-    async def close(self, connection_id: int):
+    async def close(self, ws: WebSocket):
         """disconnect socket"""
-        await connection_id.close()
+        await ws.close()
 
     async def monitor(self, connection_object: WebSocket) -> typing.AsyncIterable:
         "check stream msgs socket"
@@ -73,8 +77,10 @@ class WSLogger:
         try:
             log_request = LogRequest(**msg.payload, api_key_public=token)
             await add_log(db, log_request)
-        except ValidationError as exc:
-            return Msg(kind=ServiceLogEvent.ERROR_FORMAT, payload=exc)
+        except ValidationError:
+            return Msg(
+                kind=ServiceLogEvent.ERROR_FORMAT, payload={"error": "validation error"}
+            )
         except WebSocketException as exc:
             return Msg(kind=ServiceLogEvent.ERROR, payload=exc.reason)
 
@@ -83,21 +89,20 @@ class WSManager:
     "Management events msgs socket"
 
     def __init__(self, ws_accessor: WSAccessor, ws_logger: WSLogger):
-        self.dict_connections: dict[str, WebSocket] = {}
+        self.dict_connections: dict[WebSocket, str] = {}
         self.ws_accessor = ws_accessor
         self.ws_logger = ws_logger
+        self.count_errors = 0
 
     async def handle(
         self, connection_object: WebSocket, token: str, db: AsyncIOMotorClient
     ):
-        print("new handle connection with token:", token)
-        self.dict_connections[token] = connection_object
         async for msg in self.ws_accessor.monitor(connection_object):
             should_continue = await self._handle_event(
                 connection_object, msg, token, db
             )
             if not should_continue:
-                del self.dict_connections[token]
+                print("closing connection:", token)
                 break
 
     async def _handle_event(
@@ -106,7 +111,8 @@ class WSManager:
         if msg.kind == ClientLogEventKind.PUSH_LOG:
             msg = await self.ws_logger.add_log(msg, token, db)
             if msg is not None:
-                self._send_response(connection_object, msg)
+                self.count_errors += 1
+                await self._send_response(connection_object, msg)
             return True
         elif msg.kind == ServiceLogEvent.ERROR:
             await self._send_response(connection_object, msg)
@@ -114,22 +120,44 @@ class WSManager:
         else:
             raise NotImplementedError
 
-    async def _send_response(self, connection_object: WebSocket, msg: str):
+    async def _send_response(self, connection_object: WebSocket, msg: Msg):
+        if self.count_errors >= 5:
+            raise BadRequestLogs("Bad requests logs multiple ")
         msg_json = json.dumps(asdict(msg))
         await self.ws_accessor.push(connection_object, msg_json)
 
+    async def open_ws(self, connection_object: WebSocket, token: str):
+        print("new handle connection with token:", token)
+        ws = await self.ws_accessor.connect(connection_object)
+        self.dict_connections[token] = connection_object
+        print(self.dict_connections)
+        return ws
+
+    async def close_ws(self, connection_object: WebSocket):
+        await self.ws_accessor.close(connection_object)
+
+        token = [
+            token
+            for token in self.dict_connections.keys()
+            if self.dict_connections[token] == connection_object
+        ]
+        if not token:
+            return
+        del self.dict_connections[token[0]]
+
 
 class WSContext:
-    def __init__(self, manager: WSManager, ws: WebSocket):
+    def __init__(self, manager: WSManager, ws: WebSocket, token: str):
         self.manager = manager
         self.ws = ws
+        self.token = token
 
-    async def __aenter__(self) -> str:
-        self.connection_object = await self.manager.ws_accessor.connect(self.ws)
+    async def __aenter__(self) -> WebSocket:
+        self.connection_object = await self.manager.open_ws(self.ws, self.token)
         return self.connection_object
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         try:
-            await self.manager.ws_accessor.close(self.ws)
+            await self.manager.close_ws(self.ws)
         except RuntimeError as exc:
             print("Runtime error", exc)

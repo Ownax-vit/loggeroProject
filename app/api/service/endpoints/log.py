@@ -35,6 +35,6 @@ async def push_log(
 async def websocket_connect(
     websocket: WebSocket, token: str, db: AsyncIOMotorClient = Depends(get_database)
 ):
-    """connection on socket by api-key of machine"""
-    async with WSContext(ws_manager, websocket) as connection_object:
+    """Connection on socket by api-key of machine"""
+    async with WSContext(ws_manager, websocket, token) as connection_object:
         await ws_manager.handle(connection_object, token, db)
