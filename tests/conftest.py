@@ -1,26 +1,35 @@
-from typing import Any
-from typing import Generator
+import pytest
+from fastapi.testclient import TestClient
 
-import pytest_asyncio
-from starlette.testclient import TestClient
+from app.main import app
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest.fixture(scope="session")
 def test_user():
     return {
-        "user": {
-            "email": "test_user@test.com",
-            "password": "qwerty1234",
-            "login": "tester",
-        }
+        "email": "test_user@test.com",
+        "password": "qwerty1234",
+        "login": "tester",
     }
 
 
-@pytest_asyncio.fixture(scope="function")
-async def client() -> Generator[TestClient, Any, None]:
-    from app.main import app
+@pytest.fixture(scope="session")
+def test_user_fail():
+    return {
+        "email": "test_user_Fail/test.com",
+        "password": 123,
+        "login": "tester_Fail",
+    }
 
+
+@pytest.fixture(scope="session")
+def test_access_token(request):
+    token = request.config.cache.get("access_token", None)
+    return {"Authorization": f"Bearer {token}"}
+
+
+# TODO решить проблему с очисткой данных
+@pytest.fixture(scope="session")
+def test_client():
     with TestClient(app) as client:
         yield client
-    # db = MongoClient(MONGODB_URL)
-    # db[database_name][users_collection_name].delete_one({"login": test_user["user"]["login"]})

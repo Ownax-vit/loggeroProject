@@ -8,6 +8,7 @@ from starlette.status import HTTP_410_GONE
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 
 from ..db.mongodb import AsyncIOMotorClient
+from ..models.base import PyObjectId
 from .key import get_api_key_by_token
 from .user import get_user
 from .user import get_user_by_email
@@ -34,7 +35,7 @@ async def check_free_username_and_email(
             )
 
 
-async def check_token(conn: AsyncIOMotorClient, token: str) -> Optional[str]:
+async def check_token(conn: AsyncIOMotorClient, token: str) -> Optional[PyObjectId]:
     """Check token api-key by date and return pyobject id"""
     token = await get_api_key_by_token(conn, token)
     if token is None:

@@ -7,12 +7,12 @@ from starlette.datastructures import Secret
 
 load_dotenv(".env")
 
-JWT_TOKEN_PREFIX = "Token"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # one week
+JWT_TOKEN_PREFIX = "Bearer"
+JWT_REFRESH_TOKEN_NAME = "refresh_token"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # one week
 API_KEY_EXPIRE_DAYS = 180
 
-MAX_CONNECTIONS_COUNT = int(os.getenv("MAX_CONNECTIONS_COUNT", 10))
-MIN_CONNECTIONS_COUNT = int(os.getenv("MIN_CONNECTIONS_COUNT", 10))
 SECRET_KEY = Secret(os.getenv("SECRET_KEY", "Secretgd1hgas"))
 
 PROJECT_NAME = os.getenv("PROJECT_NAME", "Loggero")

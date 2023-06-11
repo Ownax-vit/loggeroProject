@@ -9,7 +9,7 @@ from fastapi import WebSocketException
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic.error_wrappers import ValidationError
 
-from ..crud.log import add_log
+from ..crud.log import add_log_ws
 from ..models.log import LogRequest
 
 
@@ -49,7 +49,7 @@ class WSAccessor:
         print("New connect:")
         return ws
 
-    async def push(self, ws: WebSocket, data: str):
+    async def send(self, ws: WebSocket, data: str):
         """Send json data"""
         await ws.send_json(data)
 
@@ -76,7 +76,7 @@ class WSLogger:
         """Добавить лог в БД"""
         try:
             log_request = LogRequest(**msg.payload, api_key_public=token)
-            await add_log(db, log_request)
+            await add_log_ws(db, log_request)
         except ValidationError:
             return Msg(
                 kind=ServiceLogEvent.ERROR_FORMAT, payload={"error": "validation error"}
@@ -124,7 +124,7 @@ class WSManager:
         if self.count_errors >= 5:
             raise BadRequestLogs("Bad requests logs multiple ")
         msg_json = json.dumps(asdict(msg))
-        await self.ws_accessor.push(connection_object, msg_json)
+        await self.ws_accessor.send(connection_object, msg_json)
 
     async def open_ws(self, connection_object: WebSocket, token: str):
         print("new handle connection with token:", token)

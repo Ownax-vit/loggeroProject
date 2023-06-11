@@ -27,7 +27,7 @@ router = APIRouter(tags=["journal"])
 
 @router.post("/journal", status_code=HTTP_201_CREATED, response_model=JournalInResponse)
 async def create_journal(
-    journal: JournalCreate = Body(..., embed=True),
+    journal: JournalCreate = Body(...),
     user: User = Depends(get_current_user_authorizer()),
     db: AsyncIOMotorClient = Depends(get_database),
 ) -> JournalInResponse:
@@ -47,16 +47,15 @@ async def get_journal(
     if not journal:
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND,
-            detail="Journal with current id for user not found!",
+            detail="Journal with current id for this user not found!",
         )
+
     return JournalInResponse(**journal.dict(by_alias=True))
 
 
-@router.put(
-    "/journal/{journal_id}", status_code=HTTP_200_OK, response_model=JournalInResponse
-)
+@router.put("/journal", status_code=HTTP_200_OK, response_model=JournalInResponse)
 async def update_journal(
-    journal: JournalUpdate = Body(..., embed=True),
+    journal: JournalUpdate = Body(...),
     user: User = Depends(get_current_user_authorizer()),
     db: AsyncIOMotorClient = Depends(get_database),
 ) -> JournalInResponse:
@@ -64,7 +63,7 @@ async def update_journal(
     return JournalInResponse(**journal.dict())
 
 
-@router.delete("journal/{journal_id}", status_code=HTTP_204_NO_CONTENT)
+@router.delete("/journal/{journal_id}", status_code=HTTP_204_NO_CONTENT)
 async def delete_journal(
     journal_id: str = Path(...),
     user: User = Depends(get_current_user_authorizer()),

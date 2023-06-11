@@ -1,13 +1,20 @@
 from datetime import datetime
 from typing import List
 
+from pydantic import Field
+
 from .base import DBModelBase
 from .base import DBModelMixin
+from .base import PyObjectId
 
 
 class KeyApi(DBModelBase, DBModelMixin):
     token: str
     expire: datetime
+
+
+class KeyApiPreview(KeyApi):
+    name: str
 
 
 class KeyApiDelete(DBModelMixin):
@@ -17,6 +24,7 @@ class KeyApiDelete(DBModelMixin):
 class KeyApiCreate(DBModelBase):
     name: str
     description: str
+    journal_id: PyObjectId = Field()
 
 
 class KeyApiInDB(KeyApi, KeyApiCreate):

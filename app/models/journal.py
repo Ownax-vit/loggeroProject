@@ -5,7 +5,7 @@ from pydantic import Field
 
 from .base import DBModelBase
 from .base import DBModelMixin
-from .key import KeyApi
+from .key import KeyApiPreview
 
 
 class Journal(DBModelMixin):
@@ -15,11 +15,11 @@ class Journal(DBModelMixin):
 class JournalCreate(BaseModel):
     name: str = Field(...)
     description: str = Field(...)
-    api_keys: List[KeyApi] | None
 
 
 class JournalInDB(JournalCreate, Journal):
-    user_login: str = Field(...)
+    login: str = Field(...)
+    api_keys: List[KeyApiPreview] | None
 
 
 class JournalInResponse(JournalInDB):
@@ -29,7 +29,7 @@ class JournalInResponse(JournalInDB):
 class JournalUpdate(DBModelMixin):
     name: str = Field(default=None)
     description: str = Field(default=None)
-    api_keys: List[KeyApi] | None
+    api_keys: List[KeyApiPreview] | None
 
 
 class JournalDelete(DBModelMixin):
