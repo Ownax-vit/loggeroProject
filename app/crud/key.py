@@ -102,9 +102,9 @@ async def delete_api_key(
     from ..crud.log import remove_logs_by_key_id
 
     try:
-        keydb = await get_api_key(conn, PyObjectId(key_id), login)
+        key_db = await get_api_key(conn, PyObjectId(key_id), login)
 
-        await remove_journal_token_from_preview(conn, keydb.journal_id, key_id)
+        await remove_journal_token_from_preview(conn, key_db.journal_id, key_id)
         await remove_logs_by_key_id(conn, key_id)
         del_res = await conn[database_name][key_collection_name].delete_one(
             {"_id": PyObjectId(key_id), "login": login}

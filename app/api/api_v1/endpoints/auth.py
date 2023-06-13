@@ -27,7 +27,7 @@ router = APIRouter(tags=["auth"])
     "/sign-in",
     response_model=UserInResponse,
     tags=["auth"],
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
 )
 async def login(
     response: Response,

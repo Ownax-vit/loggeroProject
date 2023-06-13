@@ -1,6 +1,5 @@
 import os
 
-from databases import DatabaseURL
 from dotenv import load_dotenv
 from starlette.datastructures import CommaSeparatedStrings
 from starlette.datastructures import Secret
@@ -27,11 +26,10 @@ if not MONGODB_URL:
     MONGO_USER = os.getenv("MONGO_USER", "admin")
     MONGO_PASS = os.getenv("MONGO_PASSWORD", "admin_1234")
 
-    MONGODB_URL = DatabaseURL(
-        f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}?authSource=admin"
-    )
+    MONGODB_URL = f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}?authSource=admin"
+
 else:
-    MONGODB_URL = DatabaseURL(MONGODB_URL)
+    MONGODB_URL = MONGODB_URL
 
 database_name = MONGO_DB
 users_collection_name = "users"

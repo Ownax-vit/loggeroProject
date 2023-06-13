@@ -67,7 +67,7 @@ async def update_journal_data(
         raise HTTPException(
             HTTP_422_UNPROCESSABLE_ENTITY, detail="Error while update journal"
         )
-    return JournalInDB(**journal.dict(by_alias=True))
+    return JournalInDB(**journal.dict(by_alias=True), login=login)
 
 
 async def push_journal_token(
@@ -111,6 +111,15 @@ async def remove_journal_token_from_preview(
 async def delete_journal_data(
     conn: AsyncIOMotorClient, journal_id: PyObjectId | str, login: str
 ):
+    journal = await get_journal_data(conn, journal_id, login)
+    if not journal:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Journal not found!")
+    from .key import delete_api_key
+
+    if journal.api_keys is not None:
+        for key in journal.api_keys:
+            await delete_api_key(conn, key.id, login)
+
     del_res = await conn[database_name][journal_collection_name].delete_one(
         {"_id": PyObjectId(journal_id), "login": login}
     )

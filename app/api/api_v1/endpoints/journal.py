@@ -49,7 +49,6 @@ async def get_journal(
             status_code=HTTP_404_NOT_FOUND,
             detail="Journal with current id for this user not found!",
         )
-
     return JournalInResponse(**journal.dict(by_alias=True))
 
 

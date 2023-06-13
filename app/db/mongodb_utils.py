@@ -9,10 +9,10 @@ from .mongodb import db
 async def connect_to_mongo(url_database: str):
     logging.info("Connection to Mongodb...")
     ca = certifi.where()
-    db.client = AsyncIOMotorClient(
-        str(url_database), serverSelectionTimeoutMS=5000, tlsCAFile=ca
-    )
     try:
+        db.client = AsyncIOMotorClient(
+            str(url_database), serverSelectionTimeoutMS=5000, tlsCAFile=ca
+        )
         print(await db.client.server_info())
         logging.info("Connected to Mongodb")
     except Exception as exc:
