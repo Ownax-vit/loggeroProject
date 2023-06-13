@@ -35,5 +35,5 @@ jobs:
     - name: Testing with pytest
       run: |
         pytest
-        env:
-          MONGO_URL: ${{ secrets.MONGO_URL }}
+      env:
+        MONGO_URL: ${{ secrets.MONGO_URL }}
