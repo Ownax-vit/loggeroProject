@@ -1,3 +1,6 @@
+import uuid
+from datetime import datetime
+from datetime import timedelta
 from typing import Generator
 
 import certifi
@@ -5,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 from pymongo import MongoClient
 
+from app.core.config import API_KEY_EXPIRE_DAYS
 from app.core.config import database_name
 from app.core.config import journal_collection_name
 from app.core.config import key_collection_name
@@ -42,6 +46,26 @@ def test_journal_upd():
         "name": "test journal updated data",
         "description": "description for test journal updated",
     }
+
+
+@pytest.fixture(scope="function")
+def test_key(created_journal: dict):
+
+    key_data = {
+        "name": "test key",
+        "description": "test description key",
+        "journal_id": created_journal["_id"],
+    }
+    return key_data
+
+
+@pytest.fixture(scope="function")
+def test_key_upd():
+    key_data = {
+        "name": "test key updated",
+        "description": "test description key updated",
+    }
+    return key_data
 
 
 @pytest.fixture(scope="function")
@@ -99,12 +123,29 @@ def test_client(request, mongo_db: MongoClient) -> Generator[TestClient, None, N
 
 
 @pytest.fixture(scope="function")
-def create_journal_id(
-    mongo_db: MongoClient, test_journal: dict, test_user: dict
+def created_journal(
+    mongo_db: MongoClient, test_journal: dict
 ) -> Generator[str, None, None]:
     collection = mongo_db[journal_collection_name]
-    journal_id = collection.insert_one(
-        {**test_journal, "login": TESTER_ADMIN["login"]}
-    ).inserted_id
-    yield str(journal_id)
+    data_journal = {**test_journal, "login": TESTER_ADMIN["login"]}
+    journal_id = collection.insert_one(data_journal).inserted_id
+    data_journal["_id"] = str(journal_id)
+    yield data_journal
     collection.delete_one({"_id": journal_id})
+
+
+@pytest.fixture(scope="function")
+def created_key(mongo_db: MongoClient, test_key: dict):
+    collection = mongo_db[key_collection_name]
+    token = str(uuid.uuid4())
+    expire = datetime.utcnow() + timedelta(API_KEY_EXPIRE_DAYS)
+    data_key = {
+        **test_key,
+        "login": TESTER_ADMIN["login"],
+        "expire": expire,
+        "token": token,
+    }
+    key_id = collection.insert_one(data_key).inserted_id
+    data_key["_id"] = str(key_id)
+    yield data_key
+    collection.delete_one({"_id": key_id})

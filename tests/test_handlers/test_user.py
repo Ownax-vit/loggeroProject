@@ -1,11 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
 
-#
-# @pytest.mark.xfail
-# def rmv_user(request, test_client, test_user):
-#     resp = test_client.delete()
-
 
 @pytest.mark.smoke
 def test_create_user(test_client: TestClient, test_user: dict):

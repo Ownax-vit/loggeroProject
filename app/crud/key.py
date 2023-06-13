@@ -103,8 +103,9 @@ async def delete_api_key(
 
     try:
         key_db = await get_api_key(conn, PyObjectId(key_id), login)
+        if key_db:
+            await remove_journal_token_from_preview(conn, key_db.journal_id, key_id)
 
-        await remove_journal_token_from_preview(conn, key_db.journal_id, key_id)
         await remove_logs_by_key_id(conn, key_id)
         del_res = await conn[database_name][key_collection_name].delete_one(
             {"_id": PyObjectId(key_id), "login": login}
