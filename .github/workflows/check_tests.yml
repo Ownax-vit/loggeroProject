@@ -11,10 +11,10 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  development:
 
     runs-on: ubuntu-latest
-
+    environment: production
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.11
@@ -33,7 +33,7 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Testing with pytest
-      secrets:
-        MONGO_URL: ${{ secrets.MONGO_URL }}
       run: |
         pytest
+        env:
+          MONGO_URL: ${{ secrets.MONGO_URL }}
