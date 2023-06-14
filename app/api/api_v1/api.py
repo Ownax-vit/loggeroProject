@@ -28,7 +28,7 @@ router = APIRouter()
 router.include_router(auth_router, prefix="/auth")
 router.include_router(key_router, prefix="/api-key")
 router.include_router(journal_router, prefix="")
-router.include_router(log_router, prefix="/log")
+router.include_router(log_router, prefix="")
 
 
 @router.get("/ping_test")

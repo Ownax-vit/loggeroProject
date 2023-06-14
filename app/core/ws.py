@@ -2,6 +2,7 @@ import json
 import typing
 from dataclasses import asdict
 from dataclasses import dataclass
+from enum import Enum
 from json.decoder import JSONDecodeError
 
 from fastapi import WebSocket
@@ -13,7 +14,7 @@ from ..crud.log import add_log_ws
 from ..models.log import LogRequest
 
 
-class ClientLogEventKind:
+class ClientLogEventKind(Enum):
     PUSH_LOG = "push_log"
     PUSH_LOGS = "push_logs"
     CONNECT = "connect"
@@ -21,7 +22,7 @@ class ClientLogEventKind:
     PONG = "pong"
 
 
-class ServiceLogEvent:
+class ServiceLogEvent(Enum):
     ERROR = "error"
     ERROR_FORMAT = "error_format"
     PING = "ping"
@@ -61,12 +62,12 @@ class WSAccessor:
         "check stream msgs socket"
         try:
             async for message in connection_object.iter_json():
-                print(message)
+                print("MSG!", message)
                 yield Msg(kind=message["kind"], payload=message["payload"])
         except JSONDecodeError as exc:
             print("EXC", exc)
             error_data = json.dumps({"error": "support json only"})
-            yield Msg(kind=ServiceLogEvent.ERROR, payload=error_data)
+            yield Msg(kind=ServiceLogEvent.ERROR.value, payload=error_data)
 
 
 class WSLogger:
@@ -79,10 +80,11 @@ class WSLogger:
             await add_log_ws(db, log_request)
         except ValidationError:
             return Msg(
-                kind=ServiceLogEvent.ERROR_FORMAT, payload={"error": "validation error"}
+                kind=ServiceLogEvent.ERROR_FORMAT.value,
+                payload={"error": "validation error"},
             )
         except WebSocketException as exc:
-            return Msg(kind=ServiceLogEvent.ERROR, payload=exc.reason)
+            return Msg(kind=ServiceLogEvent.ERROR.value, payload=exc.reason)
 
 
 class WSManager:

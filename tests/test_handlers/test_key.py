@@ -48,8 +48,10 @@ def test_key_get(test_client: TestClient, test_login_token: dict, created_key: d
     assert resp_key["name"] == created_key["name"]
     assert resp_key["description"] == created_key["description"]
     assert resp_key["login"] == created_key["login"]
-    # TODO исправить
-    # assert datetime.isoformat(datetime(resp_key["expire"])) == created_key["expire"].isoformat()
+
+    assert datetime.fromisoformat(resp_key["expire"]).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    ) == created_key["expire"].strftime("%Y-%m-%dT%H:%M:%SZ")
     assert resp_key["token"] == created_key["token"]
 
 

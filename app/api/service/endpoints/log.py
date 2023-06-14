@@ -27,8 +27,8 @@ async def push_log(
     log: LogRequest = Body(...),
     db: AsyncIOMotorClient = Depends(get_database),
 ) -> LogInDb:
-    dbLog = await add_log(db, log)
-    return LogInDb(**dbLog.dict())
+    db_log = await add_log(db, log)
+    return LogInDb(**db_log.dict())
 
 
 @router.websocket("/ws/{token}")
