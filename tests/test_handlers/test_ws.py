@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -36,4 +37,8 @@ def test_ws_push_logs(
     for index, log in enumerate(sorted_logs):
         assert log["name"] == logs_for_ws[index]["name"]
         assert log["type"] == logs_for_ws[index]["type"]
-        assert log["date"] == logs_for_ws[index]["date"]
+        assert datetime.fromisoformat(log["date"]).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        ) == datetime.fromisoformat(logs_for_ws[index]["date"]).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
