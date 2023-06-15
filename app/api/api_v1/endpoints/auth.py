@@ -70,6 +70,7 @@ async def refresh(
         value=f"{JWT_TOKEN_PREFIX} {refresh_token}",
         httponly=True,
     )
+
     user.token = access_token
 
     return UserInResponse(**user.dict())
@@ -91,3 +92,8 @@ async def registration(
     token = create_access_token(data={"login": db_user.login})
 
     return UserInResponse(**db_user.dict(by_alias=True), token=token)
+
+
+@router.post("/logout", tags=["auth"], status_code=status.HTTP_200_OK)
+async def logout(response: Response, user: User = Depends(get_current_user_refresh)):
+    response.delete_cookie(JWT_REFRESH_TOKEN_NAME)
