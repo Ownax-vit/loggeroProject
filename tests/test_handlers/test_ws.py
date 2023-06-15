@@ -1,4 +1,5 @@
 import json
+import time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -6,12 +7,10 @@ from fastapi.testclient import TestClient
 
 @pytest.mark.smoke
 def test_ws_push_logs(
-    test_client: TestClient, test_login_token: dict, created_logs_for_ws: list
+    test_client: TestClient, test_login_token: dict, logs_for_ws: list
 ):
-    with test_client.websocket_connect(
-        f"/ws/{created_logs_for_ws[0]['api_key_public']}"
-    ) as ws:
-        for log in created_logs_for_ws:
+    with test_client.websocket_connect(f"/ws/{logs_for_ws[0]['api_key_public']}") as ws:
+        for log in logs_for_ws:
             ws.send_json(
                 json.dumps(
                     {
@@ -24,9 +23,17 @@ def test_ws_push_logs(
                     }
                 )
             )
+            time.sleep(0.5)
 
-    test_client.get(
-        f"/logs/{created_logs_for_ws[0]['api_key_id']}",
+    resp = test_client.get(
+        f"/logs/{logs_for_ws[0]['api_key_id']}",
         headers=test_login_token["token"],
     )
-    # TODO доделать
+
+    resp_logs = resp.json()["logs"]
+    assert len(resp_logs) == len(logs_for_ws)
+    sorted_logs = sorted(resp_logs, key=lambda log_el: log_el["date"])
+    for index, log in enumerate(sorted_logs):
+        assert log["name"] == logs_for_ws[index]["name"]
+        assert log["type"] == logs_for_ws[index]["type"]
+        assert log["date"] == logs_for_ws[index]["date"]

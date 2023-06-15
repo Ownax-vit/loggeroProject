@@ -30,7 +30,7 @@ class ServiceLogEvent(Enum):
 
 @dataclass
 class Msg:
-    kind: str
+    kind: ServiceLogEvent | ClientLogEventKind
     payload: dict
 
     def __str__(self):
@@ -62,12 +62,14 @@ class WSAccessor:
         "check stream msgs socket"
         try:
             async for message in connection_object.iter_json():
-                print("MSG!", message)
-                yield Msg(kind=message["kind"], payload=message["payload"])
-        except JSONDecodeError as exc:
-            print("EXC", exc)
+                msg = json.loads(message)
+                yield Msg(kind=ClientLogEventKind(msg["kind"]), payload=msg["payload"])
+        except JSONDecodeError:
             error_data = json.dumps({"error": "support json only"})
-            yield Msg(kind=ServiceLogEvent.ERROR.value, payload=error_data)
+            yield Msg(kind=ServiceLogEvent.ERROR_FORMAT, payload={"error": error_data})
+        except ValueError:
+            error_data = json.dumps({"error": "not valid kind of message!"})
+            yield Msg(kind=ServiceLogEvent.ERROR_FORMAT, payload={"error": error_data})
 
 
 class WSLogger:
@@ -80,18 +82,18 @@ class WSLogger:
             await add_log_ws(db, log_request)
         except ValidationError:
             return Msg(
-                kind=ServiceLogEvent.ERROR_FORMAT.value,
+                kind=ServiceLogEvent.ERROR_FORMAT,
                 payload={"error": "validation error"},
             )
         except WebSocketException as exc:
-            return Msg(kind=ServiceLogEvent.ERROR.value, payload=exc.reason)
+            return Msg(kind=ServiceLogEvent.ERROR, payload=exc.reason)
 
 
 class WSManager:
     "Management events msgs socket"
 
     def __init__(self, ws_accessor: WSAccessor, ws_logger: WSLogger):
-        self.dict_connections: dict[WebSocket, str] = {}
+        self.dict_connections: dict[str, WebSocket] = {}
         self.ws_accessor = ws_accessor
         self.ws_logger = ws_logger
         self.count_errors = 0
@@ -104,7 +106,6 @@ class WSManager:
                 connection_object, msg, token, db
             )
             if not should_continue:
-                print("closing connection:", token)
                 break
 
     async def _handle_event(
@@ -119,12 +120,16 @@ class WSManager:
         elif msg.kind == ServiceLogEvent.ERROR:
             await self._send_response(connection_object, msg)
             return True
+        elif msg.kind == ServiceLogEvent.ERROR_FORMAT:
+            await self._send_response(connection_object, msg)
+            return True
         else:
             raise NotImplementedError
 
     async def _send_response(self, connection_object: WebSocket, msg: Msg):
         if self.count_errors >= 5:
             raise BadRequestLogs("Bad requests logs multiple ")
+        msg.kind = msg.kind.value
         msg_json = json.dumps(asdict(msg))
         await self.ws_accessor.send(connection_object, msg_json)
 
@@ -132,7 +137,6 @@ class WSManager:
         print("new handle connection with token:", token)
         ws = await self.ws_accessor.connect(connection_object)
         self.dict_connections[token] = connection_object
-        print(self.dict_connections)
         return ws
 
     async def close_ws(self, connection_object: WebSocket):

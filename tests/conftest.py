@@ -25,6 +25,7 @@ TESTER_ADMIN = {
     "password": "qwerty123456",
     "login": "tester_admin",
 }
+COUNT_LOGS_WS = 100
 
 fake = Faker(["en_Us", "ru_RU"])
 
@@ -223,7 +224,7 @@ def created_log(mongo_db: MongoClient, test_log: dict) -> Generator[dict, None, 
 
 
 @pytest.fixture(scope="function")
-def created_logs_for_ws(
+def logs_for_ws(
     mongo_db: MongoClient, created_key: dict
 ) -> Generator[list[dict], None, None]:
     list_logs = [
@@ -234,7 +235,7 @@ def created_logs_for_ws(
             "api_key_public": created_key["token"],
             "api_key_id": created_key["_id"],
         }
-        for _ in range(10)
+        for _ in range(COUNT_LOGS_WS)
     ]
 
     collection = mongo_db[log_collection_name]
