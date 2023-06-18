@@ -1,5 +1,4 @@
 from fastapi import HTTPException
-from pydantic import EmailStr
 from starlette.status import HTTP_502_BAD_GATEWAY
 
 from ..core.config import database_name
@@ -15,10 +14,8 @@ async def get_user(conn: AsyncIOMotorClient, login: str) -> UserInDB | None:
         return UserInDB(**res)
 
 
-async def get_user_by_email(
-    conn: AsyncIOMotorClient, email: EmailStr
-) -> UserInDB | None:
-    res = await conn[database_name][users_collection_name].find_one({"email": email})
+async def get_user_by_email(conn: AsyncIOMotorClient, login: str) -> UserInDB | None:
+    res = await conn[database_name][users_collection_name].find_one({"login": login})
     if res:
         return UserInDB(**res)
 

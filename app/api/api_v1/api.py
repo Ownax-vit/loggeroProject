@@ -31,6 +31,6 @@ router.include_router(journal_router, prefix="")
 router.include_router(log_router, prefix="")
 
 
-@router.get("/ping_test")
+@router.get("/ping_test", tags=["tests"])
 async def root():
     return {"message": "Hello world"}

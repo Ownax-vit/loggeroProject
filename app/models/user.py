@@ -34,12 +34,12 @@ class UserInResponse(User):
 
 
 class UserInLogin(BaseModel):
-    email: EmailStr = Field(...)
+    login: str = Field(...)
     password: str = Field(...)
 
 
 class UserInCreate(UserInLogin):
-    login: str = Field(...)
+    email: EmailStr = Field(...)
 
 
 class UserInUpdate(BaseModel):

@@ -24,7 +24,7 @@ def test_sign_in(test_client: TestClient, test_user: dict):
 
     resp = test_client.post(
         "/auth/sign-in",
-        json={"email": test_user["email"], "password": test_user["password"]},
+        json={"login": test_user["login"], "password": test_user["password"]},
     )
     assert resp.status_code == 200
     res_data = resp.json()
