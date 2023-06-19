@@ -1,6 +1,7 @@
 import json
 import time
 from datetime import datetime
+import random
 
 import pytest
 from fastapi.testclient import TestClient
@@ -24,7 +25,7 @@ def test_ws_push_logs(
                     }
                 )
             )
-            time.sleep(0.5)
+            time.sleep(1)
 
     resp = test_client.get(
         f"/logs/{logs_for_ws[0]['api_key_id']}",

@@ -15,7 +15,7 @@ API_KEY_EXPIRE_DAYS = 180
 SECRET_KEY = Secret(os.getenv("SECRET_KEY", "Secretgd1hgas"))
 
 PROJECT_NAME = os.getenv("PROJECT_NAME", "Loggero")
-ALLOWED_HOST = CommaSeparatedStrings(os.getenv("ALLOWED_HOSTS", ""))
+ALLOWED_HOST = CommaSeparatedStrings(os.getenv("ALLOWED_HOSTS", "*"))
 
 MONGODB_URL = os.getenv("MONGO_URL", "")
 MONGO_DB = os.getenv("MONGO_DB", "loggerodb")

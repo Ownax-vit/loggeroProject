@@ -55,7 +55,7 @@ def test_journal_upd():
 
 
 @pytest.fixture(scope="function")
-def test_key(created_journal: dict):
+def test_key(created_journal: dict) -> dict:
 
     key_data = {
         "name": fake.text(100),
@@ -66,7 +66,7 @@ def test_key(created_journal: dict):
 
 
 @pytest.fixture(scope="function")
-def test_key_upd():
+def test_key_upd() -> dict:
     key_data = {
         "name": fake.text(100),
         "description": fake.text(),
@@ -75,7 +75,7 @@ def test_key_upd():
 
 
 @pytest.fixture(scope="function")
-def test_log(created_key: dict):
+def test_log(created_key: dict) -> dict:
     log_data = {
         "name": fake.text(50),
         "type": fake.text(30, ext_word_list=["Info", "Debug", "Warning", "Error"]),
@@ -86,7 +86,7 @@ def test_log(created_key: dict):
 
 
 @pytest.fixture(scope="function")
-def test_log_failed_token(created_key: dict):
+def test_log_failed_token(created_key: dict) -> dict:
     log_data = {
         "name": fake.text(50),
         "type": fake.text(30, ext_word_list=["Info", "Debug", "Warning", "Error"]),
@@ -97,7 +97,7 @@ def test_log_failed_token(created_key: dict):
 
 
 @pytest.fixture(scope="function")
-def test_log_failed_datetime(created_key_failed: dict):
+def test_log_failed_datetime(created_key_failed: dict) -> dict:
     log_data = {
         "name": "error test log",
         "type": fake.text(30, ext_word_list=["Info", "Debug", "Warning", "Error"]),
@@ -108,7 +108,7 @@ def test_log_failed_datetime(created_key_failed: dict):
 
 
 @pytest.fixture(scope="function")
-def test_user(mongo_db: MongoClient):
+def test_user(mongo_db: MongoClient) -> Generator[dict, None, None]:
     user_data = {
         "email": fake.free_email(),
         "password": fake.password(length=40, special_chars=False, upper_case=False),
@@ -120,7 +120,7 @@ def test_user(mongo_db: MongoClient):
 
 
 @pytest.fixture(scope="function")
-def test_user_fail():
+def test_user_fail() -> Generator[dict, None, None]:
     user_data = {
         "email": fake.free_email().replace("@", "!"),
         "password": fake.password(length=40, special_chars=False, upper_case=False),
@@ -132,7 +132,7 @@ def test_user_fail():
 
 
 @pytest.fixture(scope="session")
-def test_login_token(request):
+def test_login_token(request) -> dict:
     token = request.config.cache.get("access_token", None)
     login = request.config.cache.get("login", None)
     return {"login": login, "token": {"Authorization": f"Bearer {token}"}}

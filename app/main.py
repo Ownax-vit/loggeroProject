@@ -3,10 +3,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from app.api.api_v1.api import router as api_router
-from app.api.api_v1.api import tags_metadata_api
+from app.api.front.api import router as api_router
+from app.api.front.api import tags_metadata_api
 from app.api.service.api import router as api_router_service
 from app.core.config import MONGODB_URL
+from app.core.config import ALLOWED_HOST
 from app.db.mongodb_utils import close_connection_mongo
 from app.db.mongodb_utils import connect_to_mongo
 
@@ -20,7 +21,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Loggero", lifespan=lifespan, openapi_tags=tags_metadata_api)
 
-origins = ["*"]
+origins = [ALLOWED_HOST]
 
 app.add_middleware(
     CORSMiddleware,
